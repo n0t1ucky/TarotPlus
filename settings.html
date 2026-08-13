@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';" />
+  <title>設置</title>
+  <link rel="stylesheet" href="settings.css" />
+</head>
+<body>
+  <h1>設置</h1>
+
+  <div class="field">
+    <label for="api-token">API Token</label>
+    <input id="api-token" type="password" placeholder="輸入 API token" />
+  </div>
+  <div class="field" id="omen-field">
+    <label>塔羅運勢</label>
+    <button id="btn-reset-omen">重置今日抽牌機會</button>
+  </div>
+
+  <div class="field" id="unlimited-field">
+    <label for="unlimited-switch">無限抽卡</label>
+    <label class="switch">
+      <input id="unlimited-switch" type="checkbox" />
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div id="msg"></div>
+
+  <script src="settings.js"></script>
+</body>
+</html>
