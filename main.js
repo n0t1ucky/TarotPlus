@@ -1,9 +1,26 @@
 const { app, BrowserWindow, screen, ipcMain, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
+const fs = require('fs');
 
 let win = null;
 let tray = null;
 let settingsWin = null;
+
+const HISTORY_FILE = path.join(app.getPath('userData'), 'tarot-history.json');
+
+function readHistory() {
+  try {
+    const raw = fs.readFileSync(HISTORY_FILE, 'utf8');
+    const data = JSON.parse(raw);
+    return Array.isArray(data) ? data : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function writeHistory(records) {
+  fs.writeFileSync(HISTORY_FILE, JSON.stringify(records, null, 2), 'utf8');
+}
 
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workArea;
@@ -44,10 +61,10 @@ function createSettingsWindow() {
   }
 
   settingsWin = new BrowserWindow({
-    width: 320,
-    height: 240,
-    resizable: false,
-    maximizable: false,
+    width: 340,
+    height: 520,
+    resizable: true,
+    maximizable: true,
     minimizable: false,
     title: '設置',
     webPreferences: {
@@ -116,4 +133,35 @@ ipcMain.on('reset-omen', () => {
   if (win && !win.isDestroyed()) {
     win.webContents.send('omen-reset');
   }
+});
+
+// 塔羅歷史記錄
+ipcMain.handle('history-get-all', () => {
+  return readHistory();
+});
+
+ipcMain.handle('history-add', (_e, entry) => {
+  const records = readHistory();
+  const item = {
+    timestamp: entry.timestamp || new Date().toISOString(),
+    cards: entry.cards || '',
+    interpretation: entry.interpretation || ''
+  };
+  records.push(item);
+  writeHistory(records);
+  return item;
+});
+
+ipcMain.handle('history-update-interpretation', (_e, { cards, interpretation }) => {
+  const records = readHistory();
+  // 找最近的、尚未有解讀、且牌面相符的記錄
+  for (let i = records.length - 1; i >= 0; i--) {
+    const r = records[i];
+    if (r.cards === cards && !r.interpretation) {
+      r.interpretation = interpretation;
+      writeHistory(records);
+      return true;
+    }
+  }
+  return false;
 });

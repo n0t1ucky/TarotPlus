@@ -332,6 +332,23 @@ const MAJOR_ARCANA = [
   '高塔', '星星', '月亮', '太陽', '審判', '世界'
 ];
 
+const MINOR_RANKS = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '侍者', '騎士', '王后', '國王'];
+const MINOR_SUITS = ['權杖', '聖杯', '寶劍', '錢幣'];
+
+function buildDeck() {
+  const deck = MAJOR_ARCANA.map((card, idx) => ({ idx, card }));
+  let num = MAJOR_ARCANA.length;
+  for (const suit of MINOR_SUITS) {
+    for (const rank of MINOR_RANKS) {
+      deck.push({ idx: num, card: `${suit}${rank}` });
+      num++;
+    }
+  }
+  return deck;
+}
+
+const FULL_DECK = buildDeck();
+
 const OMEN_KEY = 'tarot.lastDraw';
 
 // 每日重置基準：凌晨 4:00。日期鍵為「目前時間 - 4 小時」的日期字串
@@ -342,7 +359,7 @@ function omenDayKey() {
 }
 
 function drawOmen() {
-  const deck = MAJOR_ARCANA.map((card, idx) => ({ idx, card }));
+  const deck = [...FULL_DECK];
   // Fisher-Yates 洗牌後取前 3 張，避免重複
   for (let i = deck.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -363,8 +380,15 @@ function showOmen() {
     return;
   }
   const cards = drawOmen();
+  const joined = cards.join(', ');
   localStorage.setItem(OMEN_KEY, today);
-  showStatus(cards.join(', '));
+  localStorage.setItem('tarot.lastCards', joined);
+  showStatus(joined);
+  try {
+    window.api.historyAdd({ cards: joined });
+  } catch (e) {
+    // 歷史記錄寫入失敗不影響抽牌
+  }
 }
 
 btnOmen.addEventListener('click', showOmen);
@@ -372,6 +396,7 @@ btnOmen.addEventListener('click', showOmen);
 // 設定視窗按下「重置今日抽牌機會」時清空紀錄
 window.api.onOmenReset(() => {
   localStorage.removeItem(OMEN_KEY);
+  localStorage.removeItem('tarot.lastCards');
   statusEl.classList.add('omen');
   showStatus('今日抽牌機會已重置');
 });

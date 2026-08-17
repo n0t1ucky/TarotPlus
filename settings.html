@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; connect-src *;" />
   <title>設置</title>
   <link rel="stylesheet" href="settings.css" />
 </head>
@@ -13,7 +13,23 @@
     <label for="api-token">API Token</label>
     <input id="api-token" type="password" placeholder="輸入 API token" />
   </div>
-  <div class="field" id="omen-field">
+
+  <div class="field">
+    <label for="api-base-url">BASE URL (OpenAI 格式)</label>
+    <div class="row">
+      <input id="api-base-url" type="text" placeholder="https://api.example.com/v1" />
+      <button id="btn-connect">連接</button>
+    </div>
+  </div>
+
+  <div class="field" id="model-field" style="display:none;">
+    <label for="model-select">選擇模型</label>
+    <select id="model-select"></select>
+  </div>
+
+  <hr />
+
+  <div class="field">
     <label>塔羅運勢</label>
     <button id="btn-reset-omen">重置今日抽牌機會</button>
   </div>
@@ -25,6 +41,33 @@
       <span class="slider"></span>
     </label>
   </div>
+
+  <hr />
+
+  <div class="field">
+    <label>塔羅解牌</label>
+    <button id="btn-interpret">解讀今日抽牌</button>
+  </div>
+
+  <div id="result" class="result" hidden></div>
+
+  <hr />
+
+  <div class="field">
+    <label>今日抽牌</label>
+    <div id="today-cards" class="result info">尚未抽牌</div>
+  </div>
+
+  <div class="field">
+    <label>今日解讀</label>
+    <div id="today-interpret" class="result info">尚無解讀</div>
+  </div>
+
+  <div class="field">
+    <button id="btn-history">顯示歷史記錄</button>
+  </div>
+
+  <div id="history-list" class="result" hidden></div>
 
   <div id="msg"></div>
 
