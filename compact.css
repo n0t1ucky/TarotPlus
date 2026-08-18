@@ -1,0 +1,72 @@
+/* 緊湊模式：180×90 超小視窗 */
+
+body.compact {
+  border-radius: 6px;
+}
+
+body.compact #titlebar {
+  height: 15px;
+  padding: 0 2px 0 4px;
+  font-size: 8px;
+}
+
+body.compact #btn-quit {
+  top: 1px;
+  right: 1px;
+  width: 17px;
+  height: 13px;
+  font-size: 10px;
+}
+
+body.compact #display {
+  font-size: 20px;
+  padding: 0 0 1px;
+  letter-spacing: 0;
+  line-height: 1.15;
+}
+
+body.compact #controls {
+  gap: 2px;
+  padding: 0 4px 4px;
+}
+
+body.compact #mode-row {
+  gap: 2px;
+}
+
+body.compact .mode-btn {
+  padding: 1px 0;
+  font-size: 8px;
+  border-radius: 3px;
+}
+
+body.compact #input-h, body.compact #input-m, body.compact #input-s {
+  width: 24px;
+  font-size: 10px;
+  padding: 2px 1px;
+  border-radius: 3px;
+}
+
+body.compact #input-row {
+  gap: 2px;
+}
+
+body.compact .colon {
+  font-size: 9px;
+}
+
+body.compact #input-row button {
+  padding: 2px 4px;
+  font-size: 9px;
+  border-radius: 3px;
+}
+
+body.compact #status {
+  min-height: 12px;
+  font-size: 8px;
+  line-height: 1.3;
+  padding: 0 4px 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

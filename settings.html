@@ -5,6 +5,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; connect-src *;" />
   <title>設置</title>
   <link rel="stylesheet" href="settings.css" />
+  <link rel="stylesheet" href="toast.css" />
 </head>
 <body>
   <h1>設置</h1>
@@ -42,6 +43,11 @@
     </label>
   </div>
 
+  <div class="field">
+    <label for="win-size-select">主視窗尺寸</label>
+    <select id="win-size-select"></select>
+  </div>
+
   <hr />
 
   <div class="field">
@@ -71,6 +77,7 @@
 
   <div id="msg"></div>
 
+  <script src="toast.js"></script>
   <script src="settings.js"></script>
 </body>
 </html>

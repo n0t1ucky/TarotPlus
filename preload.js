@@ -6,5 +6,9 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.on('omen-reset', () => callback());
   },
   historyAdd: (entry) => ipcRenderer.invoke('history-add', entry),
-  historyGetAll: () => ipcRenderer.invoke('history-get-all')
+  historyGetAll: () => ipcRenderer.invoke('history-get-all'),
+  windowGetCurrentPreset: () => ipcRenderer.invoke('window-get-presets'),
+  onWindowPresetChanged: (callback) => {
+    ipcRenderer.on('window-preset-changed', (_e, name) => callback(name));
+  }
 });

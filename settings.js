@@ -13,6 +13,7 @@ const todayCardsEl = document.getElementById('today-cards');
 const todayInterpretEl = document.getElementById('today-interpret');
 const btnHistory = document.getElementById('btn-history');
 const historyListEl = document.getElementById('history-list');
+const winSizeSelect = document.getElementById('win-size-select');
 const msg = document.getElementById('msg');
 
 const TOKEN_KEY = 'api.token';
@@ -23,6 +24,9 @@ const UNLIMITED_KEY = 'omen.unlimited';
 function showMsg(text, isError) {
   msg.textContent = text;
   msg.classList.toggle('error', !!isError);
+  if (text && typeof showToast === 'function') {
+    showToast(text);
+  }
 }
 
 function baseUrl() {
@@ -213,7 +217,7 @@ async function loadToday() {
   }
 }
 
-// 顯示歷史記錄
+// 顯示歷史記錄（可展開/折疊解牌）
 async function showHistory() {
   const visible = historyListEl.hidden;
   if (!visible) {
@@ -228,16 +232,46 @@ async function showHistory() {
       historyListEl.innerHTML = '<div class="history-entry">尚無抽牌記錄</div>';
     } else {
       const reversed = [...history].reverse();
-      historyListEl.innerHTML = reversed.map((r) => {
-        const cards = r.cards ? `<div class="history-cards">${escapeHtml(r.cards)}</div>` : '';
-        const interp = r.interpretation
+      historyListEl.innerHTML = reversed.map((r, i) => {
+        const cards = r.cards
+          ? `<div class="history-cards">${escapeHtml(r.cards)}</div>`
+          : '<div class="history-cards">（無牌面記錄）</div>';
+        const hasInterp = !!r.interpretation;
+        const interpBody = hasInterp
           ? `<div class="history-interpretation">${escapeHtml(r.interpretation)}</div>`
           : '<div class="history-interpretation" style="color:#9aa0b4;">（尚未解讀）</div>';
-        return `<div class="history-entry"><div class="history-time">${fmtTime(r.timestamp)}</div>${cards}${interp}</div>`;
+        const chevron = hasInterp ? '▸' : '';
+        return (
+          `<div class="history-entry" data-idx="${i}">` +
+          `<div class="history-time">${fmtTime(r.timestamp)}</div>` +
+          `<div class="history-head" ${hasInterp ? 'role="button" tabindex="0"' : ''}>` +
+          `<span class="history-chevron">${chevron}</span>${cards}</div>` +
+          `<div class="history-interp-wrap" hidden>${interpBody}</div>` +
+          `</div>`
+        );
       }).join('');
     }
     historyListEl.hidden = false;
     btnHistory.textContent = '隱藏歷史記錄';
+
+    // 點擊牌面標題展開/折疊解牌
+    historyListEl.querySelectorAll('.history-entry').forEach((entry) => {
+      const head = entry.querySelector('.history-head');
+      if (!head) return;
+      const wrap = entry.querySelector('.history-interp-wrap');
+      const chevron = entry.querySelector('.history-chevron');
+      head.addEventListener('click', () => {
+        const isOpen = !wrap.hidden;
+        wrap.hidden = isOpen;
+        chevron.textContent = isOpen ? '' : '▾';
+      });
+      head.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          head.click();
+        }
+      });
+    });
   } catch (e) {
     showMsg('讀取歷史失敗：' + e.message, true);
   } finally {
@@ -253,6 +287,32 @@ function escapeHtml(str) {
 
 btnHistory.addEventListener('click', showHistory);
 
+// 主視窗尺寸
+async function loadWindowSize() {
+  try {
+    const { presets, current } = await window.api.windowGetPresets();
+    winSizeSelect.innerHTML = '';
+    for (const [name, p] of Object.entries(presets)) {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = `${p.label} (${p.width}×${p.height})`;
+      winSizeSelect.appendChild(opt);
+    }
+    winSizeSelect.value = current;
+  } catch (e) {
+    showMsg('讀取窗口尺寸失敗：' + e.message, true);
+  }
+}
+
+winSizeSelect.addEventListener('change', async () => {
+  try {
+    const ok = await window.api.windowSetPreset(winSizeSelect.value);
+    showMsg(ok ? '主視窗尺寸已更新' : '套用失敗', !ok);
+  } catch (e) {
+    showMsg('套用尺寸失敗：' + e.message, true);
+  }
+});
+
 // 重置抽牌
 btnReset.addEventListener('click', () => {
   try {
@@ -267,3 +327,4 @@ btnReset.addEventListener('click', () => {
 });
 
 loadToday();
+loadWindowSize();

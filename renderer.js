@@ -90,6 +90,9 @@ function fieldsToDurationMs() {
 
 function showStatus(msg) {
   statusEl.textContent = msg || '';
+  if (msg && typeof showToast === 'function') {
+    showToast(msg);
+  }
 }
 
 function setRunningClass(on) {
@@ -401,15 +404,29 @@ window.api.onOmenReset(() => {
   showStatus('今日抽牌機會已重置');
 });
 
+// 依據窗口尺寸應用緊湊佈局
+function applyPresetClass(name) {
+  document.body.classList.toggle('compact', name === 'compact');
+}
+
 async function init() {
-  // 啟動時從主行程讀取目前時區時間
+  // 依目前窗口尺寸設定佈局
+  try {
+    const { current } = await window.api.windowGetCurrentPreset();
+    applyPresetClass(current);
+  } catch (e) {
+    // 忽略
+  }
+  window.api.onWindowPresetChanged(applyPresetClass);
+
+  // 啟動時從主行程讀取目前時區時間（僅顯示於狀態列，不彈 toast）
   try {
     const t = await window.api.getCurrentTime();
     const d = new Date(t.local);
     const pad = (n) => String(n).padStart(2, '0');
-    showStatus(`啟動於 ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} (時區偏移 ${t.timezoneOffsetMinutes} 分)`);
+    statusEl.textContent = `啟動於 ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} (時區偏移 ${t.timezoneOffsetMinutes} 分)`;
   } catch (e) {
-    showStatus('無法讀取目前時間');
+    statusEl.textContent = '無法讀取目前時間';
   }
   updateDisplay();
   inputM.value = '25';

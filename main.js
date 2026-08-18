@@ -7,6 +7,24 @@ let tray = null;
 let settingsWin = null;
 
 const HISTORY_FILE = path.join(app.getPath('userData'), 'tarot-history.json');
+const CONFIG_FILE = path.join(app.getPath('userData'), 'window-config.json');
+
+const WINDOW_PRESETS = {
+  standard: { width: 360, height: 176, label: '標準' },
+  compact: { width: 180, height: 90, label: '緊湊' }
+};
+
+function readConfig() {
+  try {
+    return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+  } catch (e) {
+    return {};
+  }
+}
+
+function writeConfig(config) {
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), 'utf8');
+}
 
 function readHistory() {
   try {
@@ -25,8 +43,12 @@ function writeHistory(records) {
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workArea;
 
-  const winWidth = 360;
-  const winHeight = 176;
+  const config = readConfig();
+  const presetName = WINDOW_PRESETS[config.windowPreset] ? config.windowPreset : 'standard';
+  const preset = WINDOW_PRESETS[presetName];
+
+  const winWidth = preset.width;
+  const winHeight = preset.height;
 
   win = new BrowserWindow({
     width: winWidth,
@@ -133,6 +155,36 @@ ipcMain.on('reset-omen', () => {
   if (win && !win.isDestroyed()) {
     win.webContents.send('omen-reset');
   }
+});
+
+// 窗口尺寸
+ipcMain.handle('window-get-presets', () => {
+  const config = readConfig();
+  const current = WINDOW_PRESETS[config.windowPreset] ? config.windowPreset : 'standard';
+  return { presets: WINDOW_PRESETS, current };
+});
+
+ipcMain.handle('window-set-preset', (_e, presetName) => {
+  const preset = WINDOW_PRESETS[presetName];
+  if (!preset) return false;
+  const config = readConfig();
+  config.windowPreset = presetName;
+  writeConfig(config);
+
+  if (win && !win.isDestroyed()) {
+    const { width, height } = screen.getPrimaryDisplay().workArea;
+    // resizable:false 時 setSize 縮小常被忽略，暫時開啟 resize 強制套用
+    win.setResizable(true);
+    win.setBounds({
+      width: preset.width,
+      height: preset.height,
+      x: width - preset.width - 12,
+      y: height - preset.height - 12
+    });
+    win.setResizable(false);
+    win.webContents.send('window-preset-changed', presetName);
+  }
+  return true;
 });
 
 // 塔羅歷史記錄
