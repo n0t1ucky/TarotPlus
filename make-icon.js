@@ -79,9 +79,45 @@ function drawTimer(x, y, size) {
 const assetsDir = path.join(__dirname, 'assets');
 if (!fs.existsSync(assetsDir)) fs.mkdirSync(assetsDir);
 
-for (const size of [16, 32, 48]) {
+const pngs = {};
+for (const size of [16, 32, 48, 256]) {
   const png = makePng(size, drawTimer);
+  pngs[size] = png;
   const file = path.join(assetsDir, `tray-${size}.png`);
   fs.writeFileSync(file, png);
   console.log('written', file);
 }
+
+// 組合成 .ico（Vista+ 支援 PNG 內嵌，即使 256×256 也無失真）
+function makeIco(entries) {
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0); // reserved
+  header.writeUInt16LE(1, 2); // type: icon
+  header.writeUInt16LE(entries.length, 4); // count
+  const dirSize = 16 * entries.length;
+  const dir = Buffer.alloc(dirSize);
+  let offset = 6 + dirSize;
+  entries.forEach(({ size, data }, i) => {
+    const p = i * 16;
+    dir.writeUInt8(size >= 256 ? 0 : size, p);      // width
+    dir.writeUInt8(size >= 256 ? 0 : size, p + 1);  // height
+    dir.writeUInt8(0, p + 2);                        // color count
+    dir.writeUInt8(0, p + 3);                        // reserved
+    dir.writeUInt16LE(1, p + 4);                     // planes
+    dir.writeUInt16LE(32, p + 6);                    // bit count
+    dir.writeUInt32LE(data.length, p + 8);           // size
+    dir.writeUInt32LE(offset, p + 12);               // offset
+    offset += data.length;
+  });
+  return Buffer.concat([header, dir, ...entries.map((e) => e.data)]);
+}
+
+const ico = makeIco([
+  { size: 256, data: pngs[256] },
+  { size: 48, data: pngs[48] },
+  { size: 32, data: pngs[32] },
+  { size: 16, data: pngs[16] }
+]);
+const icoFile = path.join(assetsDir, 'icon.ico');
+fs.writeFileSync(icoFile, ico);
+console.log('written', icoFile);

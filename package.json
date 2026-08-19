@@ -4,11 +4,47 @@
   "description": "A borderless transparent countdown widget for Windows",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build:win": "electron-builder --win portable --x64"
   },
-  "author": "",
+  "author": "n0t1ucky",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^33.0.0"
+    "electron": "^33.0.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.n0t1ucky.tarotplus",
+    "productName": "TarotPlus",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "settings-preload.js",
+      "renderer.js",
+      "settings.js",
+      "settings.html",
+      "settings.css",
+      "index.html",
+      "styles.css",
+      "compact.css",
+      "toast.css",
+      "toast.js",
+      "assets/**/*"
+    ],
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}.exe"
+    }
   }
 }

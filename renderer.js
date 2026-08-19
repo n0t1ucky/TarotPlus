@@ -379,7 +379,8 @@ function showOmen() {
   const today = omenDayKey();
   statusEl.classList.add('omen');
   if (!unlimited && localStorage.getItem(OMEN_KEY) === today) {
-    showStatus('今日已抽過，凌晨 4:00 後可再抽');
+    const drawn = localStorage.getItem('tarot.lastCards');
+    showStatus(drawn ? `今日已抽過：${drawn}` : '今日已抽過，凌晨 4:00 後可再抽');
     return;
   }
   const cards = drawOmen();

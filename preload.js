@@ -10,5 +10,6 @@ contextBridge.exposeInMainWorld('api', {
   windowGetCurrentPreset: () => ipcRenderer.invoke('window-get-presets'),
   onWindowPresetChanged: (callback) => {
     ipcRenderer.on('window-preset-changed', (_e, name) => callback(name));
-  }
+  },
+  showToast: (message, durationMs) => ipcRenderer.send('show-toast', message, durationMs)
 });

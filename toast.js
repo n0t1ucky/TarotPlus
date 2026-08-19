@@ -1,38 +1,13 @@
 'use strict';
 
-let toastContainer = null;
-
-function getToastContainer() {
-  if (!toastContainer) {
-    toastContainer = document.createElement('div');
-    toastContainer.id = 'toast-container';
-    document.body.appendChild(toastContainer);
-  }
-  return toastContainer;
-}
-
-// 顯示提示彈窗：預設 3 秒後消失；點擊立即關閉
+// 顯示提示彈窗：改為獨立通知視窗顯示，避免主視窗過小被裁切。
+// 自動消失（預設 3 秒）與點擊關閉皆由通知視窗端處理。
 function showToast(message, durationMs) {
   if (!message) return;
   const ttl = durationMs || 3000;
-  const container = getToastContainer();
-
-  const toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.textContent = message;
-  container.appendChild(toast);
-
-  let timer = null;
-  let dismissed = false;
-
-  const dismiss = () => {
-    if (dismissed) return;
-    dismissed = true;
-    clearTimeout(timer);
-    toast.classList.add('leaving');
-    setTimeout(() => toast.remove(), 300);
-  };
-
-  toast.addEventListener('click', dismiss);
-  timer = setTimeout(dismiss, ttl);
+  try {
+    window.api.showToast(message, ttl);
+  } catch (e) {
+    // IPC 不可用時靜默失敗，不影響主流程
+  }
 }
